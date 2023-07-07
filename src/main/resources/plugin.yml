@@ -1,3 +1,4 @@
 name: TA_NoMoreLag
 version: '${project.version}'
 main: fox.ryukkun_.ta_nomorelag.TA_NoMoreLag
+depend: [ProtocolLib]
