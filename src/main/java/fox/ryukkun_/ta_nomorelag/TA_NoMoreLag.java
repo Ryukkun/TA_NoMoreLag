@@ -21,19 +21,33 @@ public final class TA_NoMoreLag extends JavaPlugin {
         ProtocolManager manager = ProtocolLibrary.getProtocolManager();
         manager.addPacketListener(new PacketAdapter(this, ListenerPriority.NORMAL, PacketType.Play.Client.POSITION) {
 
-            long time = System.currentTimeMillis();
+            long time = 0;
+            long amari = 0;
             @Override
             public void onPacketReceiving(PacketEvent event) {
                 PacketContainer packet = event.getPacket();
                 Player player = event.getPlayer();
 
-                long dif = System.currentTimeMillis() - time;
-                time = System.currentTimeMillis();
+                long  dif;
+                long now_time = System.currentTimeMillis();
+                if (time == 0){
+                    dif = 0;
+                } else {
+                    dif = now_time - time;
+                }
+                time = now_time;
+
+                long _amari = dif % 50;
+                //getLogger().info(" "+_amari);
+                if (_amari > 25){
+                    _amari = _amari - 50;
+                }
+                amari += _amari;
                 //player.sendMessage("IKIteru! Time:" + dif);
                 Double x = packet.getDoubles().read(0);
                 Double y = packet.getDoubles().read(1);
                 Double z = packet.getDoubles().read(2);
-                player.sendMessage("x:" + x + " y:" + y + " z:" + z + " Time:" + dif);
+                player.sendMessage("x:" + x + " y:" + y + " z:" + z + " Time:" + dif + " amari:" + amari);
             }
         });
     }
