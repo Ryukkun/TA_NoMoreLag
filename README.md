@@ -1,6 +1,18 @@
 # TA_NoMoreLag
 
 
+## タイムずれの要因
+1. 時間計算方式（従来）
+    1. Serer tickのずれ
+        - 1tickの処理を50ms以内に処理できなかった時 ずれるんじゃねって思ってる。サーバーとクライアント非同期だし、全然ずれそう
+        - TAタイムの"**50ms以上**"のずれには関与しない
+    1. Playerとのping
+        - タイム計測開始時のpingと計測終了時のpingのずれ
+        - TAタイムの"**50ms以下**"のずれには関与しない
+1. Packetカウント方式
+    1. パケロス
+       - 対策むっず
+
 ## Packet
 - Keep Alive ([ToServer](https://wiki.vg/index.php?title=Protocol&oldid=14204#Keep_Alive_.28serverbound.29)) ([ToClient](https://wiki.vg/index.php?title=Protocol&oldid=14204#Keep_Alive_.28clientbound.29))
     - 説明 : サーバーは、ランダムなIDを含むキープアライブを頻繁に送信する。クライアントは同じパケットで応答しなければならない。クライアントが30秒以上応答しない場合、サーバーはクライアントをキックする。逆に、サーバーが20秒間キープアライブを送信しなかった場合、クライアントは切断され、"Timed out "例外が発生する。<br>NotchianサーバーはキープアライブIDの値を生成するのに、ミリ秒単位のシステム依存の時間を使用します。
