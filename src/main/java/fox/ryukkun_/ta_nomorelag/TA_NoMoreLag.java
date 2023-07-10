@@ -7,47 +7,44 @@ import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
+import fox.ryukkun_.ta_nomorelag.event.StartTA;
+import fox.ryukkun_.ta_nomorelag.players.PlayersData;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 
 
 public final class TA_NoMoreLag extends JavaPlugin {
-
     @Override
     public void onEnable() {
         // Plugin startup login
 
-        ProtocolManager manager = ProtocolLibrary.getProtocolManager();
-        manager.addPacketListener(new PacketAdapter(this, ListenerPriority.NORMAL, PacketType.Play.Client.POSITION) {
+        getServer().getPluginManager().registerEvents(new StartTA(), this);
 
-            long time = 0;
-            long amari = 0;
+        ProtocolManager manager = ProtocolLibrary.getProtocolManager();
+        manager.addPacketListener(new PacketAdapter(this, ListenerPriority.NORMAL, PacketType.Play.Client.POSITION_LOOK, PacketType.Play.Client.POSITION, PacketType.Play.Client.LOOK) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
                 PacketContainer packet = event.getPacket();
                 Player player = event.getPlayer();
 
-                long  dif;
-                long now_time = System.currentTimeMillis();
-                if (time == 0){
-                    dif = 0;
-                } else {
-                    dif = now_time - time;
-                }
-                time = now_time;
+                PlayersData.get_player(player).add_packet(packet);
+            }
+        });
 
-                long _amari = dif % 50;
-                //getLogger().info(" "+_amari);
-                if (_amari > 25){
-                    _amari = _amari - 50;
+        manager.addPacketListener(new PacketAdapter(this, ListenerPriority.NORMAL, PacketType.Play.Client.KEEP_ALIVE) {
+            @Override
+            public void onPacketReceiving(PacketEvent event) {
+                PacketContainer packet = event.getPacket();
+
+                for (TAUnit unit : GetPing.waiting) {
+                    if (unit.ta_player.player == event.getPlayer()) {
+                        int ping = (int)(System.currentTimeMillis() - packet.getLongs().read(0));
+                        unit.ta_player.player.sendMessage( Integer.valueOf(ping).toString() );
+                        //GetPing.waiting.remove(unit);
+                        break;
+                    }
                 }
-                amari += _amari;
-                //player.sendMessage("IKIteru! Time:" + dif);
-                Double x = packet.getDoubles().read(0);
-                Double y = packet.getDoubles().read(1);
-                Double z = packet.getDoubles().read(2);
-                player.sendMessage("x:" + x + " y:" + y + " z:" + z + " Time:" + dif + " amari:" + amari);
             }
         });
     }
