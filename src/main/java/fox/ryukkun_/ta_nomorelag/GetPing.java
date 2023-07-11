@@ -8,12 +8,39 @@ import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
+import java.util.Random;
+
+
+class PingData {
+    public boolean start;
+    public long send_time;
+    private static final Random random = new Random();
+    public long id;
+    public TAUnit ta;
+    public Player player;
+    public PingData (TAUnit ta, boolean start) {
+        this.ta = ta;
+        this.player = ta.ta_player.player;
+        this.start = start;
+        this.id = random.nextLong();
+
+    }
+
+    public void set_ping(int ping){
+        ta.set_ping(ping, start);
+    }
+}
+
 
 public class GetPing {
-    public static ArrayList<TAUnit> waiting = new ArrayList<>();
+
+
+    public static ArrayList<PingData> waiting = new ArrayList<>();
+    public static ArrayList<PingData> _cancel_list = new ArrayList<>();
 
     public static void set_event() {
         ProtocolManager manager = ProtocolLibrary.getProtocolManager();
@@ -21,25 +48,23 @@ public class GetPing {
             @Override
             public void onPacketReceiving(PacketEvent event) {
                 Long id = event.getPacket().getLongs().read(0);
-                int ping = (int) (System.currentTimeMillis() - id);
                 //event.getPlayer().sendMessage(Integer.valueOf(ping).toString());
 
-                for (TAUnit unit : GetPing.waiting) {
-                    if (unit.ta_player.player == event.getPlayer()) {
+                for (PingData unit : GetPing._cancel_list){
+                    if (unit.player == event.getPlayer() && unit.id == id) {
+                        GetPing._cancel_list.remove(unit);
+                        event.setCancelled(true);
+                        return;
+                    }
+                }
 
-                        if (unit._start_packet_send_time == id) {
-                            unit.set_ping(ping, true);
-                            GetPing.waiting.remove(unit);
-                            event.setCancelled(true);
-                            break;
+                for (PingData unit : GetPing.waiting) {
+                    if (unit.player == event.getPlayer() && unit.id == id) {
 
-                        } else if (unit._stop_packet_send_time == id) {
-                            unit.set_ping(ping, false);
-                            GetPing.waiting.remove(unit);
-                            event.setCancelled(true);
-                            break;
-
-                        }
+                        unit.set_ping((int) (System.currentTimeMillis() - unit.send_time));
+                        GetPing.waiting.remove(unit);
+                        event.setCancelled(true);
+                        break;
                     }
                 }
             }
@@ -49,43 +74,30 @@ public class GetPing {
             public void onPacketSending(PacketEvent event) {
                 PacketContainer packet = event.getPacket();
                 long id = packet.getLongs().read(0);
+
                 //event.getPlayer().sendMessage("send : " + packet.getLongs().read(0));
-                for (TAUnit unit : GetPing.waiting) {
-                    if (unit.ta_player.player == event.getPlayer()) {
-                        long nowtime = System.currentTimeMillis();
+                for (PingData unit : GetPing.waiting) {
+                    if (unit.player == event.getPlayer() && unit.id == id) {
 
-                        if (unit._start_packet_send_time == id) {
-                            unit._start_packet_send_time = nowtime;
-                            packet.getLongs().write(0, nowtime);
-                            break;
-
-                        } else if (unit._stop_packet_send_time == id) {
-                            unit._stop_packet_send_time = nowtime;
-                            packet.getLongs().write(0, nowtime);
-                            break;
-                        }
+                        unit.send_time = System.currentTimeMillis();
+                        break;
                     }
                 }
             }
         });
-        //new WaitingChecker().runTaskTimer(TA_NoMoreLag.get_plugin(), 0L, 100L);
+        new WaitingChecker().runTaskTimer(TA_NoMoreLag.get_plugin(), 0L, 100L);
     }
 
     public static void want_ping(TAUnit unit, boolean start) {
-        long nowtime = System.currentTimeMillis();
-        if (start) {
-            unit._start_packet_send_time = nowtime;
-        } else {
-            unit._stop_packet_send_time = nowtime;
-        }
-        GetPing.waiting.add(unit);
+        PingData data = new PingData(unit, start);
+        GetPing.waiting.add(data);
 
         ProtocolManager manager = ProtocolLibrary.getProtocolManager();
         PacketContainer packet = manager.createPacket(PacketType.Play.Server.KEEP_ALIVE);
-        packet.getLongs().write(0, nowtime);
+        packet.getLongs().write(0, data.id);
 
         try {
-            manager.sendServerPacket(unit.ta_player.player, packet);
+            manager.sendServerPacket(data.player, packet);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -96,19 +108,23 @@ public class GetPing {
         public void run() {
             long now_time = System.currentTimeMillis();
             for (int i = 0; i < GetPing.waiting.size(); i++) {
-                TAUnit unit = GetPing.waiting.get(i);
-                if (unit.start_ping == -1 && 5000 < (now_time - unit._start_packet_send_time)){
-                    unit.set_ping(((CraftPlayer) unit.ta_player.player).getHandle().ping, true);
-                    GetPing.waiting.remove(unit);
-                    i--;
+                PingData unit = GetPing.waiting.get(i);
 
-                } else if (unit.stop_ping == -1 && 5000 < (now_time - unit._stop_packet_send_time)) {
-                    unit.set_ping(0, false);
+                if (5000 < (now_time - unit.send_time)) {
+                    unit.set_ping(((CraftPlayer) unit.ta_player.player).getHandle().ping);
                     GetPing.waiting.remove(unit);
+                    GetPing._cancel_list.add(unit);
+                    i--;
+                }
+            }
+
+            for (int i = 0; i < GetPing._cancel_list.size(); i++) {
+                PingData unit = GetPing._cancel_list.get(i);
+                if (60000 < (now_time - unit.send_time)) {
+                    GetPing._cancel_list.remove(unit);
                     i--;
                 }
             }
         }
-
     }
 }
