@@ -5,7 +5,6 @@ import fox.ryukkun_.ta_nomorelag.players.TAPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
-import java.util.Objects;
 
 public class TAUnit {
     public TAPlayer ta_player;
@@ -33,13 +32,14 @@ public class TAUnit {
                 this.is_counting = false;
                 this.start_time = packet.time;
                 GetPing.want_ping(this, true);
+
             } else {
 
                 // afk時のカウントできるだけする マイナスにはならない
                 boolean _afk = false;
                 if (last_packet != null) {
                     if (last_packet.type != PacketType.Play.Client.LOOK  &&  packet.type != PacketType.Play.Client.LOOK){
-                        if (last_packet.x == packet.z  &&  last_packet.y == packet.y  &&  last_packet.z == packet.z) {
+                        if (last_packet.x == packet.x  &&  last_packet.y == packet.y  &&  last_packet.z == packet.z) {
                             _afk = true;
                         }
                     }
