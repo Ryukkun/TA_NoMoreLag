@@ -150,7 +150,10 @@ public class TAUnit {
         }
 
         if (this.all_green()) {
-            this._finish();
+            Bukkit.getScheduler().scheduleSyncDelayedTask(
+                    TA_NoMoreLag.get_plugin(),
+                    this::_finish
+            );
         }
     }
 

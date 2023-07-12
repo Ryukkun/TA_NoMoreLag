@@ -47,24 +47,29 @@ public class GetPing {
             @Override
             public void onPacketReceiving(PacketEvent event) {
                 Long id = event.getPacket().getLongs().read(0);
+                long now_time = System.currentTimeMillis();
+                PingData find_data = null;
                 //event.getPlayer().sendMessage(Integer.valueOf(ping).toString());
 
-                for (PingData unit : GetPing._cancel_list){
-                    if (unit.player.equals(event.getPlayer()) && unit.id == id) {
-                        GetPing._cancel_list.remove(unit);
-                        event.setCancelled(true);
-                        return;
+                synchronized (this){
+                    for (PingData unit : GetPing._cancel_list){
+                        if (unit.player.equals(event.getPlayer()) && unit.id == id) {
+                            GetPing._cancel_list.remove(unit);
+                            event.setCancelled(true);
+                            return;
+                        }
+                    }
+
+                    for (PingData unit : GetPing.waiting) {
+                        if (unit.player.equals(event.getPlayer()) && unit.id == id) {
+                            find_data = unit;
+                            GetPing.waiting.remove(unit);
+                            break;
+                        }
                     }
                 }
-
-                for (PingData unit : GetPing.waiting) {
-                    if (unit.player.equals(event.getPlayer()) && unit.id == id) {
-
-                        unit.set_ping((int) (System.currentTimeMillis() - unit.send_time));
-                        GetPing.waiting.remove(unit);
-                        event.setCancelled(true);
-                        break;
-                    }
+                if (find_data != null){
+                    find_data.set_ping((int) (now_time - find_data.send_time));
                 }
             }
         });
@@ -90,6 +95,7 @@ public class GetPing {
     public static void want_ping(TAUnit unit, boolean start) {
         PingData data = new PingData(unit, start);
         GetPing.waiting.add(data);
+        GetPing._cancel_list.add(data);
 
         ProtocolManager manager = ProtocolLibrary.getProtocolManager();
         PacketContainer packet = manager.createPacket(PacketType.Play.Server.KEEP_ALIVE);

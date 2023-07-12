@@ -25,18 +25,16 @@ public class TAPlayer {
         TAUnit ta = new TAUnit(name, this);
         boolean find = false;
 
-        synchronized (this) {
-            for (Packet _packet : this.cache_packets) {
-                if (!find) {
-                    if (!_packet.type.equals(PacketType.Play.Client.LOOK)) {
-                        if (_packet.x == pos.getX() && _packet.y == pos.getY() && _packet.z == pos.getZ()) {
-                            find = true;
-                        }
+        for (Packet _packet : this.cache_packets) {
+            if (!find) {
+                if (!_packet.type.equals(PacketType.Play.Client.LOOK)) {
+                    if (_packet.x == pos.getX() && _packet.y == pos.getY() && _packet.z == pos.getZ()) {
+                        find = true;
                     }
                 }
-                if (find) {
-                    ta.add_count(_packet);
-                }
+            }
+            if (find) {
+                ta.add_count(_packet);
             }
         }
 
@@ -65,16 +63,18 @@ public class TAPlayer {
 
     public void add_packet(PacketContainer packet) {
         Packet ta_packet = new Packet(packet, this.last_packet_time);
-        this.cache_packets.add(ta_packet);
-        this.last_packet_time = ta_packet.time;
-        for (TAUnit unit : this.running_ta.values()){
-                unit.add_count(ta_packet);
+        synchronized (this) {
+            this.cache_packets.add(ta_packet);
+            this.last_packet_time = ta_packet.time;
+            for (TAUnit unit : this.running_ta.values()){
+                    unit.add_count(ta_packet);
+            }
         }
         this.clear_packet(ta_packet.time);
 
     }
 
-    public void clear_packet(long now_time) {
+    public synchronized void clear_packet(long now_time) {
         this.cache_packets.removeIf(packet -> (now_time - 5000) > packet.time);
     }
 }
