@@ -8,13 +8,14 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 
 public class TAPlayer {
     public Player player;
-    public ArrayList<Packet> cache_packets = new ArrayList<>();
+    public final List<Packet> cache_packets = new CopyOnWriteArrayList<>();
     public HashMap<String, TAUnit> running_ta = new HashMap<>();
     public long last_packet_time = 0;
     public TAPlayer(Player player) {
@@ -63,18 +64,16 @@ public class TAPlayer {
 
     public void add_packet(PacketContainer packet) {
         Packet ta_packet = new Packet(packet, this.last_packet_time);
-        synchronized (this) {
-            this.cache_packets.add(ta_packet);
-            this.last_packet_time = ta_packet.time;
-            for (TAUnit unit : this.running_ta.values()){
-                    unit.add_count(ta_packet);
-            }
+        this.cache_packets.add(ta_packet);
+        this.last_packet_time = ta_packet.time;
+        for (TAUnit unit : this.running_ta.values()){
+                unit.add_count(ta_packet);
         }
         this.clear_packet(ta_packet.time);
 
     }
 
-    public synchronized void clear_packet(long now_time) {
+    public void clear_packet(long now_time) {
         this.cache_packets.removeIf(packet -> (now_time - 5000) > packet.time);
     }
 }

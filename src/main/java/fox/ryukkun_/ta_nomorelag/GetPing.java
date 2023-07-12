@@ -10,8 +10,9 @@ import com.comphenix.protocol.events.PacketEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 
 class PingData {
@@ -38,38 +39,32 @@ class PingData {
 
 
 public class GetPing {
-    public static ArrayList<PingData> waiting = new ArrayList<>();
-    public static ArrayList<PingData> _cancel_list = new ArrayList<>();
+    public static final List<PingData> waiting = new CopyOnWriteArrayList<>();
+    public static final List<PingData> _cancel_list = new CopyOnWriteArrayList<>();
 
     public static void set_event() {
         ProtocolManager manager = ProtocolLibrary.getProtocolManager();
-        manager.addPacketListener(new PacketAdapter(TA_NoMoreLag.get_plugin(), ListenerPriority.LOWEST, PacketType.Play.Client.KEEP_ALIVE) {
+        manager.addPacketListener(new PacketAdapter(TA_NoMoreLag.get_plugin(), ListenerPriority.NORMAL, PacketType.Play.Client.KEEP_ALIVE) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
                 Long id = event.getPacket().getLongs().read(0);
                 long now_time = System.currentTimeMillis();
-                PingData find_data = null;
                 //event.getPlayer().sendMessage(Integer.valueOf(ping).toString());
 
-                synchronized (this){
-                    for (PingData unit : GetPing._cancel_list){
-                        if (unit.player.equals(event.getPlayer()) && unit.id == id) {
-                            GetPing._cancel_list.remove(unit);
-                            event.setCancelled(true);
-                            return;
-                        }
-                    }
-
-                    for (PingData unit : GetPing.waiting) {
-                        if (unit.player.equals(event.getPlayer()) && unit.id == id) {
-                            find_data = unit;
-                            GetPing.waiting.remove(unit);
-                            break;
-                        }
+                for (PingData unit : GetPing.waiting) {
+                    if (unit.player.equals(event.getPlayer()) && unit.id == id) {
+                        unit.set_ping((int) (now_time - unit.send_time));
+                        GetPing.waiting.remove(unit);
+                        break;
                     }
                 }
-                if (find_data != null){
-                    find_data.set_ping((int) (now_time - find_data.send_time));
+
+                for (PingData unit : GetPing._cancel_list){
+                    if (unit.player.equals(event.getPlayer()) && unit.id == id) {
+                        GetPing._cancel_list.remove(unit);
+                        event.setCancelled(true);
+                        return;
+                    }
                 }
             }
         });
@@ -118,7 +113,6 @@ public class GetPing {
                 if (5000 < (now_time - unit.send_time)) {
                     unit.set_ping(5000);
                     GetPing.waiting.remove(unit);
-                    GetPing._cancel_list.add(unit);
                     i--;
                 }
             }
