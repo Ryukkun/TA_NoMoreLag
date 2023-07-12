@@ -5,6 +5,8 @@ import fox.ryukkun_.ta_nomorelag.players.TAPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
+import java.util.ArrayList;
+
 
 public class TAUnit {
     public TAPlayer ta_player;
@@ -13,11 +15,11 @@ public class TAUnit {
     public boolean is_counting = true;
     public int count = 0;
     public long start_time = -1;
-    public long _start_packet_send_time = -1;
-    public long _stop_packet_send_time = -1;
-    public int start_ping = -1;
+    public ArrayList<PingData> _start_pings = new ArrayList<>();
+    public int start_ping_result = -1;
     public long stop_time = -1;
-    public int stop_ping = -1;
+    public  ArrayList<PingData> _stop_pings = new ArrayList<>();
+    public int stop_ping_result = -1;
     private Packet last_packet = null;
     private boolean afk = false;
 
@@ -56,12 +58,12 @@ public class TAUnit {
     }
 
     private boolean all_green(){
-        return (start_ping != -1 && stop_ping != -1 && is_finished);
+        return (start_ping_result != -1 && stop_ping_result != -1 && is_finished);
     }
 
     private int get_tick(){
         int tick = count;
-        long duration = (stop_time - (stop_ping / 2)) - (start_time - (start_ping / 2));
+        long duration = (stop_time - (stop_ping_result / 2)) - (start_time - (start_ping_result / 2));
         tick += duration / 50;
 
         Bukkit.getServer().getLogger().info("count:"+count+" +timems:"+duration);
@@ -82,7 +84,7 @@ public class TAUnit {
         int sec = time % 60;
 
 
-        Bukkit.getServer().getLogger().info("time:"+time+" start:"+start_time+" ping:"+start_ping+" stop:"+stop_time+" ping"+stop_ping);
+        Bukkit.getServer().getLogger().info("time:"+time+" start:"+start_time+" ping:"+start_ping_result+" stop:"+stop_time+" ping"+stop_ping_result);
         String s_min = int_to_string(min);
         String s_sec = int_to_string(sec);
         String s_ms = Integer.valueOf(ms).toString();
@@ -109,13 +111,13 @@ public class TAUnit {
     }
 
 
-    public void set_ping(int ping, boolean start){
+    public void set_ping(PingData ping){
         // pingが最後に得られる値だから タイム計測とかもここに書いちゃお
 
-        if (start) {
-            start_ping = ping;
+        if (ping.start) {
+            _start_pings.add(ping);
         } else {
-            stop_ping = ping;
+            _stop_pings.add(ping);
         }
 
         if (this.all_green()) {

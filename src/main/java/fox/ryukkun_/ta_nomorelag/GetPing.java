@@ -22,6 +22,7 @@ class PingData {
     public long id;
     public TAUnit ta;
     public Player player;
+    public int ping;
     public PingData (TAUnit ta, boolean start) {
         this.ta = ta;
         this.player = ta.ta_player.player;
@@ -31,14 +32,13 @@ class PingData {
     }
 
     public void set_ping(int ping){
-        ta.set_ping(ping, start);
+        this.ping = ping;
+        ta.set_ping(this);
     }
 }
 
 
 public class GetPing {
-
-
     public static ArrayList<PingData> waiting = new ArrayList<>();
     public static ArrayList<PingData> _cancel_list = new ArrayList<>();
 
