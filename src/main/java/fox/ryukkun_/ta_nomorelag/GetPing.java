@@ -50,7 +50,7 @@ public class GetPing {
                 //event.getPlayer().sendMessage(Integer.valueOf(ping).toString());
 
                 for (PingData unit : GetPing._cancel_list){
-                    if (unit.player == event.getPlayer() && unit.id == id) {
+                    if (unit.player.equals(event.getPlayer()) && unit.id == id) {
                         GetPing._cancel_list.remove(unit);
                         event.setCancelled(true);
                         return;
@@ -58,7 +58,7 @@ public class GetPing {
                 }
 
                 for (PingData unit : GetPing.waiting) {
-                    if (unit.player == event.getPlayer() && unit.id == id) {
+                    if (unit.player.equals(event.getPlayer()) && unit.id == id) {
 
                         unit.set_ping((int) (System.currentTimeMillis() - unit.send_time));
                         GetPing.waiting.remove(unit);
