@@ -4,6 +4,7 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import fox.ryukkun_.ta_nomorelag.Packet;
 import fox.ryukkun_.ta_nomorelag.TAUnit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -23,20 +24,26 @@ public class TAPlayer {
     public void start_ta(String name, Location pos) {
         TAUnit ta = new TAUnit(name, this);
         boolean find = false;
-        for (Packet _packet : this.cache_packets) {
-            if (!find) {
-                if (!_packet.type.equals(PacketType.Play.Client.LOOK)) {
-                    if (_packet.x == pos.getX()  &&  _packet.y == pos.getY()  &&  _packet.z == pos.getZ()) {
-                        find = true;
+
+        synchronized (this) {
+            for (Packet _packet : this.cache_packets) {
+                if (!find) {
+                    if (!_packet.type.equals(PacketType.Play.Client.LOOK)) {
+                        if (_packet.x == pos.getX() && _packet.y == pos.getY() && _packet.z == pos.getZ()) {
+                            find = true;
+                        }
                     }
                 }
-            }
-            if (find) {
-                ta.add_count(_packet);
+                if (find) {
+                    ta.add_count(_packet);
+                }
             }
         }
+
         if (find) {
             running_ta.put(name, ta);
+            String message = ">>> " + name + "&r 計測カイジ";
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
         }
     }
 
@@ -46,6 +53,7 @@ public class TAPlayer {
                 if (!_packet.type.equals(PacketType.Play.Client.LOOK)) {
                     if (_packet.x == pos.getX()  &&  _packet.y == pos.getY()  &&  _packet.z == pos.getZ()) {
                         running_ta.get(name).finish(_packet);
+                        running_ta.remove(name);
                         break;
                     }
                 }
@@ -63,10 +71,11 @@ public class TAPlayer {
                 unit.add_count(ta_packet);
         }
         this.clear_packet(ta_packet.time);
+
     }
 
     public void clear_packet(long now_time) {
-        this.cache_packets.removeIf(packet -> (now_time - 2000) > packet.time);
+        this.cache_packets.removeIf(packet -> (now_time - 5000) > packet.time);
     }
 }
 

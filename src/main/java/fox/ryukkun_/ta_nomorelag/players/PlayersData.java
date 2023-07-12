@@ -1,6 +1,5 @@
 package fox.ryukkun_.ta_nomorelag.players;
 
-import com.comphenix.protocol.PacketType;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;

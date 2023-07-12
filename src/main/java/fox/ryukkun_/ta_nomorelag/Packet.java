@@ -2,7 +2,6 @@ package fox.ryukkun_.ta_nomorelag;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
-import org.bukkit.Bukkit;
 
 public class Packet {
     public PacketContainer packet;
@@ -25,9 +24,6 @@ public class Packet {
             this.duration = 0;
         } else{
             this.duration = this.time - last_time;
-        }
-        if (duration < 10 && !packet.getType().equals(PacketType.Play.Client.LOOK)){
-            Bukkit.getServer().getLogger().info("x:"+this.x + " y:"+this.y + " z:"+this.z);
         }
     }
 }

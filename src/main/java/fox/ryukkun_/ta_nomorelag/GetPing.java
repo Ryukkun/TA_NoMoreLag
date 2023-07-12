@@ -7,7 +7,6 @@ import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
-import org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -111,7 +110,7 @@ public class GetPing {
                 PingData unit = GetPing.waiting.get(i);
 
                 if (5000 < (now_time - unit.send_time)) {
-                    unit.set_ping(((CraftPlayer) unit.ta_player.player).getHandle().ping);
+                    unit.set_ping(5000);
                     GetPing.waiting.remove(unit);
                     GetPing._cancel_list.add(unit);
                     i--;
