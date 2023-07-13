@@ -8,19 +8,21 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.UUID;
 
 public class PlayersData {
-    public static HashMap<Player, TAPlayer> players_map = new HashMap<>();
+    public static HashMap<UUID, TAPlayer> players_map = new HashMap<>();
 
     public static void add_player(Player player) {
-        if (!players_map.containsKey(player)) {
-            players_map.put(player, new TAPlayer(player));
+        if (!players_map.containsKey(player.getUniqueId())) {
+            players_map.put(player.getUniqueId(), new TAPlayer(player));
         }
     }
 
     public static TAPlayer get_player(Player player) {
         PlayersData.add_player(player);
-        return players_map.get(player);
+
+        return players_map.get(player.getUniqueId());
     }
 
     public static void set_event(){
@@ -30,9 +32,9 @@ public class PlayersData {
     public static class OfflineChecker extends BukkitRunnable {
         @Override
         public void run() {
-            for (Iterator<Player> i = players_map.keySet().iterator(); i.hasNext();){
-                Player player = i.next();
-                OfflinePlayer op = Bukkit.getOfflinePlayer(player.getUniqueId());
+            for (Iterator<UUID> i = players_map.keySet().iterator(); i.hasNext();){
+                UUID uuid = i.next();
+                OfflinePlayer op = Bukkit.getOfflinePlayer(uuid);
                 if (!op.isOnline() && 1200 * 1000 < (System.currentTimeMillis() - op.getLastPlayed())){
                     i.remove();
                 }

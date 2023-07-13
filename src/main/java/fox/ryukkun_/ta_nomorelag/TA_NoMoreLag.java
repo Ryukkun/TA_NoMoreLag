@@ -7,6 +7,7 @@ import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
+import fox.ryukkun_.ta_nomorelag.event.PlayerJoin;
 import fox.ryukkun_.ta_nomorelag.event.PlayerMove;
 import fox.ryukkun_.ta_nomorelag.players.PlayersData;
 import org.bukkit.entity.Player;
@@ -24,6 +25,7 @@ public final class TA_NoMoreLag extends JavaPlugin {
 
         saveDefaultConfig();
         getServer().getPluginManager().registerEvents(new PlayerMove(), this);
+        getServer().getPluginManager().registerEvents(new PlayerJoin(), this);
 
         ProtocolManager manager = ProtocolLibrary.getProtocolManager();
         manager.addPacketListener(new PacketAdapter(this, ListenerPriority.NORMAL, PacketType.Play.Client.POSITION_LOOK, PacketType.Play.Client.POSITION, PacketType.Play.Client.LOOK) {
