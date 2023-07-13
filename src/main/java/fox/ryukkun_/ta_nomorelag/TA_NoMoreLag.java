@@ -34,7 +34,9 @@ public final class TA_NoMoreLag extends JavaPlugin {
                 PlayersData.get_player(player).add_packet(packet);
             }
         });
+
         GetPing.set_event();
+        PlayersData.set_event();
     }
 
     @Override
@@ -42,7 +44,7 @@ public final class TA_NoMoreLag extends JavaPlugin {
         // Plugin shutdown logic
     }
 
-    public static  Plugin get_plugin(){
+    public static Plugin get_plugin(){
         return plugin;
     }
 }

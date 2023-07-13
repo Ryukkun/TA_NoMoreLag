@@ -128,6 +128,7 @@ public class TAUnit {
 
 
     public void set_ping(PingData ping){
+        // this is async
         // pingが最後に得られる値だから タイム計測とかもここに書いちゃお
 
         if (ping.start) {
@@ -151,8 +152,8 @@ public class TAUnit {
 
         if (this.all_green()) {
             Bukkit.getScheduler().scheduleSyncDelayedTask(
-                    TA_NoMoreLag.get_plugin(),
-                    this::_finish
+                TA_NoMoreLag.get_plugin(),
+                this::_finish
             );
         }
     }

@@ -32,6 +32,7 @@ class PingData {
     }
 
     public void set_ping(int ping){
+        // this is async
         this.ping = ping;
         ta.set_ping(this);
     }
@@ -47,9 +48,9 @@ public class GetPing {
         manager.addPacketListener(new PacketAdapter(TA_NoMoreLag.get_plugin(), ListenerPriority.NORMAL, PacketType.Play.Client.KEEP_ALIVE) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
+                // this is async function
                 Long id = event.getPacket().getLongs().read(0);
                 long now_time = System.currentTimeMillis();
-                //event.getPlayer().sendMessage(Integer.valueOf(ping).toString());
 
                 for (PingData unit : GetPing.waiting) {
                     if (unit.player.equals(event.getPlayer()) && unit.id == id) {
@@ -71,10 +72,10 @@ public class GetPing {
         manager.addPacketListener(new PacketAdapter(TA_NoMoreLag.get_plugin(), ListenerPriority.NORMAL, PacketType.Play.Server.KEEP_ALIVE) {
             @Override
             public void onPacketSending(PacketEvent event) {
+                // this is sync function
                 PacketContainer packet = event.getPacket();
                 long id = packet.getLongs().read(0);
 
-                //event.getPlayer().sendMessage("send : " + packet.getLongs().read(0));
                 for (PingData unit : GetPing.waiting) {
                     if (unit.player == event.getPlayer() && unit.id == id) {
 
