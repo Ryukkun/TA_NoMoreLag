@@ -207,7 +207,7 @@ public class TAUnit {
                 ArrayList<BaseComponent> res = new ArrayList<>(Arrays.asList(TextComponent.fromLegacyText(split[0])));
                 res.add(time_text);
                 res.addAll(Arrays.asList(TextComponent.fromLegacyText(split[1])));
-                txt = res.toArray(new BaseComponent[res.size()]);
+                txt = res.toArray(new BaseComponent[0]);
 
             }
         }
