@@ -4,13 +4,17 @@ import com.comphenix.protocol.PacketType;
 import fox.ryukkun_.ta_nomorelag.players.TAPlayer;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class TAUnit {
@@ -102,7 +106,6 @@ public class TAUnit {
 
         count = tick;
         time_ms = duration;
-        //Bukkit.getServer().getLogger().info("count:"+tick+" +timems:"+duration);
         tick += duration / 50;
 
         if (20 < (duration % 50)) {
@@ -185,12 +188,33 @@ public class TAUnit {
         int tick = get_tick();
         String time = calc_time(tick);
 
-        BaseComponent[] txt = TextComponent.fromLegacyText(String.format(finish_message ,
-                player.getName(),
-                ChatColor.translateAlternateColorCodes('&', name),
-                time));
+        BaseComponent[] txt = null;
+        String re_time = "(§[0-9,a-r])*"+time;
+        String raw_text = String.format(finish_message,
+                                        player.getName(),
+                                        ChatColor.translateAlternateColorCodes('&', name),
+                                        time);
 
-        //builder.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("count:"+count+" +timems:"+time_ms+"\nstart:"+start_time+" ping:"+start_ping_result+" stop:"+stop_time+" ping"+stop_ping_result)));
+        if (TA_NoMoreLag.get_plugin().getConfig().getBoolean("show_ta_detail")) {
+            String[] split = raw_text.split(re_time, 2);
+
+            if (split.length == 2) {
+                Matcher time_mc = Pattern.compile(re_time).matcher(raw_text);
+                time_mc.find();
+                BaseComponent time_text = TextComponent.fromLegacyText(time_mc.group())[0];
+                time_text.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("count:" + count + " +time_ms:" + time_ms + "\nstart_ping:" + start_ping_result + " finish_ping" + stop_ping_result)));
+
+                ArrayList<BaseComponent> res = new ArrayList<>(Arrays.asList(TextComponent.fromLegacyText(split[0])));
+                res.add(time_text);
+                res.addAll(Arrays.asList(TextComponent.fromLegacyText(split[1])));
+                txt = res.toArray(new BaseComponent[res.size()]);
+
+            }
+        }
+        if (txt == null){
+            txt = TextComponent.fromLegacyText(raw_text);
+            }
+
         Bukkit.getServer().getLogger().info(TextComponent.toPlainText(txt));
         for (Player op: Bukkit.getServer().getOnlinePlayers()){
             op.spigot().sendMessage(txt);
