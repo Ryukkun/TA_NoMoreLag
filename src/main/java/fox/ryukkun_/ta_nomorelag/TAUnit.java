@@ -2,8 +2,10 @@ package fox.ryukkun_.ta_nomorelag;
 
 import com.comphenix.protocol.PacketType;
 import fox.ryukkun_.ta_nomorelag.players.TAPlayer;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
@@ -24,6 +26,8 @@ public class TAUnit {
     public long stop_time = -1;
     public  ArrayList<Integer> _stop_pings = new ArrayList<>();
     public int stop_ping_result = -1;
+    private int count;
+    private long time_ms;
 
     public TAUnit(String name, TAPlayer ta_player) {
         this.name = name;
@@ -67,7 +71,7 @@ public class TAUnit {
 
             if (afk || _afk){
                 tick += 19;
-                Bukkit.getServer().getLogger().info("+19 " + packet.x + " " + packet.y + " " + packet.z );
+                //Bukkit.getServer().getLogger().info("+19 " + packet.x + " " + packet.y + " " + packet.z );
             }
             afk = _afk;
             last_packet = packet;
@@ -80,7 +84,9 @@ public class TAUnit {
             duration = (stop_time - (stop_ping_result / 2)) - (start_time - (start_ping_result / 2));
         }
 
-        Bukkit.getServer().getLogger().info("count:"+tick+" +timems:"+duration);
+        count = tick;
+        time_ms = duration;
+        //Bukkit.getServer().getLogger().info("count:"+tick+" +timems:"+duration);
         tick += duration / 50;
 
         if (20 < (duration % 50)) {
@@ -100,7 +106,7 @@ public class TAUnit {
         int sec = time % 60;
 
 
-        Bukkit.getServer().getLogger().info("start:"+start_time+" ping:"+start_ping_result+" stop:"+stop_time+" ping"+stop_ping_result);
+        //Bukkit.getServer().getLogger().info("start:"+start_time+" ping:"+start_ping_result+" stop:"+stop_time+" ping"+stop_ping_result);
         String s_min = int_to_string(min);
         String s_sec = int_to_string(sec);
         String s_ms = Integer.valueOf(ms).toString();
@@ -151,10 +157,11 @@ public class TAUnit {
         }
 
         if (this.all_green()) {
-            Bukkit.getScheduler().scheduleSyncDelayedTask(
-                TA_NoMoreLag.get_plugin(),
-                this::_finish
-            );
+//            Bukkit.getScheduler().scheduleSyncDelayedTask(
+//                TA_NoMoreLag.get_plugin(),
+//                this::_finish
+//            );
+            this._finish();
         }
     }
 
@@ -162,8 +169,17 @@ public class TAUnit {
         int tick = get_tick();
         String time = calc_time(tick);
 
-        String message = ">>> &n" + ta_player.player.getName() + "&r が、" + name + "&rをクリアしました！ [" + time + "]";
-        Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', message));
+        String message = ">>> §n%1$s §rが、%2$s §rをクリアしました！ [%3$s]";
+        BaseComponent[] txt = TextComponent.fromLegacyText(String.format(message ,
+                player.getName(),
+                ChatColor.translateAlternateColorCodes('&', name),
+                time));
+
+        //builder.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("count:"+count+" +timems:"+time_ms+"\nstart:"+start_time+" ping:"+start_ping_result+" stop:"+stop_time+" ping"+stop_ping_result)));
+        Bukkit.getServer().getLogger().info(TextComponent.toPlainText(txt));
+        for (Player op: Bukkit.getServer().getOnlinePlayers()){
+            op.spigot().sendMessage(txt);
+        }
     }
 
 
