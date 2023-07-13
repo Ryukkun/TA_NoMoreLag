@@ -4,7 +4,6 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import fox.ryukkun_.ta_nomorelag.Packet;
 import fox.ryukkun_.ta_nomorelag.TAUnit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -18,6 +17,7 @@ public class TAPlayer {
     public final List<Packet> cache_packets = new CopyOnWriteArrayList<>();
     public HashMap<String, TAUnit> running_ta = new HashMap<>();
     public long last_packet_time = 0;
+    public boolean on_start = false;
     public TAPlayer(Player player) {
         this.player = player;
     }
@@ -40,9 +40,13 @@ public class TAPlayer {
         }
 
         if (find) {
-            running_ta.put(name, ta);
-            String message = ">>> " + name + "&r 計測カイジ";
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
+            if (!on_start){
+                running_ta.put(name, ta);
+                ta.start();
+                on_start = true;
+            }
+        } else{
+            on_start = false;
         }
     }
 

@@ -28,12 +28,28 @@ public class TAUnit {
     public int stop_ping_result = -1;
     private int count;
     private long time_ms;
+    private static final String start_message = TA_NoMoreLag.get_plugin().getConfig().getString("start_message");
+    private static final String finish_message = TA_NoMoreLag.get_plugin().getConfig().getString("finish_message");
 
     public TAUnit(String name, TAPlayer ta_player) {
         this.name = name;
         this.ta_player = ta_player;
         this.player = ta_player.player;
     }
+
+
+    public void start(){
+        // いうてメッセージ送るだけ
+        BaseComponent[] txt = TextComponent.fromLegacyText(String.format(start_message ,
+                player.getName(),
+                ChatColor.translateAlternateColorCodes('&', name)));
+
+        player.spigot().sendMessage(txt);
+    }
+
+
+
+
 
     public void add_count(Packet packet) {
         if (this.is_counting && !this.is_finished) {
@@ -169,8 +185,7 @@ public class TAUnit {
         int tick = get_tick();
         String time = calc_time(tick);
 
-        String message = ">>> §n%1$s §rが、%2$s §rをクリアしました！ [%3$s]";
-        BaseComponent[] txt = TextComponent.fromLegacyText(String.format(message ,
+        BaseComponent[] txt = TextComponent.fromLegacyText(String.format(finish_message ,
                 player.getName(),
                 ChatColor.translateAlternateColorCodes('&', name),
                 time));

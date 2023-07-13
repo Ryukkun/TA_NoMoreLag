@@ -1,0 +1,6 @@
+start_block : JUKEBOX
+finish_block : NOTE_BLOCK
+
+# %1$s = プレイヤー名 , %2$s = アスレ名 , %3$s = Time
+start_message : ">>> %2$s §r計測開始!"
+finish_message : ">>> §n%1$s §rが、%2$s §rをクリアしました！ [%3$s]"

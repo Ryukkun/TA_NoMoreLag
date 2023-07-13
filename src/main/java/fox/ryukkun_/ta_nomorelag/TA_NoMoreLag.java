@@ -22,6 +22,7 @@ public final class TA_NoMoreLag extends JavaPlugin {
         // Plugin startup login
         plugin = this;
 
+        saveDefaultConfig();
         getServer().getPluginManager().registerEvents(new PlayerMove(), this);
 
         ProtocolManager manager = ProtocolLibrary.getProtocolManager();
